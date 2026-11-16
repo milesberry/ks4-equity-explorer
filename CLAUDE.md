@@ -9,8 +9,9 @@ offer / uptake / attainment. Published at https://claude.ai/artifact/QB3ro7cJfrF
 First version published 2026-11-16 and confirmed working by the user. Not yet built, in
 rough order of the user's interest:
 
-1. Location views: local authority and parliamentary constituency (LA rows are already
-   in `area_groups.csv`; postcode and constituency are in `schools.csv`).
+1. Location, further: parliamentary constituency or school-level dot map (postcode and
+   constituency are in `schools.csv`; neither has boundaries or coordinates yet).
+   The local authority tab with a choropleth map was added 2026-11-16.
 2. The notebook's models: logit for offer, OLS for uptake and average grade against
    % disadvantaged, % EAL, % SEN and % girls (no KS2 score this year).
 3. School-level trends across 2023/24 to 2025/26 (performance file only).
@@ -43,7 +44,7 @@ Read the type's own instructions first (`Artifact` read of the URL) before chang
 2. Data change: rerun the build, upload each changed CSV with `Artifact` (`asset: true`,
    `url`, `file_path`), then `update` the matching `datasets/<id>` document's `source.url`
    and `updated.at`. Dataset ids: `schools`, `subject_entries`, `area_groups`,
-   `national_subjects`.
+   `national_subjects`, `la_boundaries` (JSON, not rows).
 3. Afterwards read `data/users/me` docs `check` and `runs` to see whether the page ran.
    Fetch `check` alone with `get` (or pass `out_dir`): the `page` doc beside it holds the
    whole rendered page, every scatter dot included, and is very large.
@@ -63,6 +64,19 @@ https://milesberry.net/ks4-equity-explorer/ (Pages serves `docs/` on `main`).
 tokens). After any page or data change run it, commit and push. `docs/` is generated:
 edit `dashboard/`, never `docs/`. Keep the Claude artifact and the Pages site in step.
 Anything `app.js` newly uses from `dash` must also be added to the shim.
+
+## Local authority map
+
+- Boundaries: ONS counties and unitary authorities, December 2025, ultra-generalised
+  (BUC). Its codes match DfE `new_la_code` for all 152 authorities with data; older
+  vintages lack the 2025 Barnsley and Sheffield codes. City of London has no DfE figure.
+- Coordinates are kept in British National Grid metres and drawn with
+  `d3.geoIdentity().reflectY(true)`. Do not switch to lat/long GeoJSON with a d3
+  spherical projection without fixing ring winding, or shapes fill the whole map.
+- London is redrawn in an inset placed where Wales would be.
+- The `la_measure` calc in `app.js` produces the mapped value per authority; params
+  `lam` (measure) and `lar` (region). Subject measures add up state mainstream schools.
+- Python's urllib fails certificate checks on this Mac; `fetch_data.py` shells out to curl.
 
 ## Data facts (2025/26 release, published October 2026)
 

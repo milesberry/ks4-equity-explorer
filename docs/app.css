@@ -74,4 +74,17 @@
 
 .kx-count { padding-bottom: 8px; }
 
+.kx-scroll { max-height: 520px; overflow: auto; }
+.kx-ranked td:first-child { min-width: 0; white-space: nowrap; color: var(--color-fg-muted); }
+.kx-ranked th, .kx-ranked td { padding: 6px 8px; }
+.kx-ranked td:nth-child(2), .kx-ranked td:nth-child(3) { white-space: normal; }
+.kx-scroll thead th { position: sticky; top: 0; z-index: 1; }
+.kx-table tbody tr.kx-selected td { background: var(--color-panel); color: var(--color-fg); font-weight: var(--cds-font-weight-medium, 500); }
+.kx-table tbody tr.kx-click { cursor: pointer; }
+.kx-la { stroke: var(--color-panel); stroke-width: 0.6; cursor: pointer; }
+.kx-la.kx-dim { opacity: 0.22; }
+.kx-la.kx-selected, .kx-la:hover { stroke: var(--color-fg); stroke-width: 1.6; }
+.kx-inset { fill: none; stroke: var(--cds-chart-axis, var(--color-border-line)); }
+.kx-swatch-sq { width: 14px; height: 10px; border-radius: 2px; flex: none; }
+
 .kx [hidden] { display: none !important; }

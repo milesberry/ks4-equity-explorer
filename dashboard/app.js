@@ -10,7 +10,7 @@
     eal: { topic: 'First language', a: 'English first language', b: 'EAL', ka: 'noneal', kb: 'eal' },
     sen: { topic: 'SEND', a: 'No SEND', b: 'SEND', ka: null, kb: null },
   };
-  const DEFAULTS = { cmp: 'dis', stype: 'State mainstream', subject: 'Computer Science', band: 'pct_dis', sx: 'pct_dis', sy: 'uptake' };
+  const DEFAULTS = { cmp: 'dis', stype: 'State mainstream', subject: 'Computer Science', band: 'pct_dis', sx: 'pct_dis', sy: 'uptake', lam: 'gap_dis', lar: '' };
   const NUMERIC = {
     schools: ['cohort', 'pct_girls', 'pct_dis', 'pct_eal', 'pct_sen', 'pct_ehcp', 'a8', 'a8_boys', 'n_boys', 'a8_girls', 'n_girls',
       'a8_dis', 'n_dis', 'a8_nondis', 'n_nondis', 'a8_eal', 'n_eal', 'a8_noneal', 'n_noneal', 'idaci'],
@@ -122,6 +122,69 @@
         cohort, entries, uptake_pct: r1((100 * entries) / cohort), uptake_offering_pct: r1((100 * entries) / offeringCohort),
         avg_grade: vocational || !graded ? null : r1(points / graded), pass_pct: graded ? r1((100 * n4) / graded) : null,
       }];
+    },
+  });
+
+  dash.calc('la_measure', {
+    title: 'Chosen measure for each local authority',
+    description: 'One row per upper-tier local authority for the measure chosen on the Local authorities tab, latest year, highest first.',
+    inputs: ['area_groups', 'schools', 'subject_entries'],
+    fn: (area_groups, schools, subject_entries) => {
+      const p = dash.params();
+      const measure = p.lam || 'gap_dis', subject = p.subject || 'Computer Science';
+      const r1 = (v) => Math.round(v * 10) / 10;
+      const year = area_groups.reduce((m, r) => (r.level === 'Local authority' && r.year > m ? r.year : m), '');
+      const las = new Map();
+      for (const r of area_groups) {
+        if (r.level !== 'Local authority' || r.year !== year) continue;
+        let o = las.get(r.la_code);
+        if (!o) { o = { la_code: r.la_code, la: r.area, region: r.region, groups: {} }; las.set(r.la_code, o); }
+        o.groups[r.group] = { a8: +r.a8, pupils: +r.pupils };
+      }
+      // Attainment 8 measures: one group's score, or the first group minus the second.
+      const pairs = {
+        a8_all: ['All pupils'], a8_dis: ['Disadvantaged'], a8_sen: ['SEND'],
+        gap_dis: ['Not disadvantaged', 'Disadvantaged'], gap_sex: ['Girls', 'Boys'],
+        gap_eal: ['English first language', 'EAL'], gap_sen: ['No SEND', 'SEND'],
+      };
+      const out = [];
+      if (pairs[measure]) {
+        const [a, b] = pairs[measure];
+        for (const o of las.values()) {
+          const ga = o.groups[a], gb = b ? o.groups[b] : null;
+          if (!ga || (b && !gb)) continue;
+          out.push({ la_code: o.la_code, la: o.la, region: o.region, value: r1(b ? ga.a8 - gb.a8 : ga.a8), base: b ? ga.pupils + gb.pupils : ga.pupils });
+        }
+      } else {
+        // Subject measures: add up state-funded mainstream schools in each authority.
+        const sums = new Map(), laOf = new Map();
+        for (const s of schools) {
+          if (s.type !== 'State mainstream' || !las.has(s.la_code)) continue;
+          laOf.set(String(s.urn), s.la_code);
+          let a = sums.get(s.la_code);
+          if (!a) { a = { schools: 0, cohort: 0, offering: 0, entries: 0, graded: 0, points: 0, n4: 0, vocational: false }; sums.set(s.la_code, a); }
+          a.schools += 1;
+          a.cohort += +s.cohort || 0;
+        }
+        for (const e of subject_entries) {
+          if (e.subject !== subject) continue;
+          const a = sums.get(laOf.get(String(e.urn)));
+          if (!a) continue;
+          a.offering += 1;
+          a.entries += +e.entries || 0; a.graded += +e.graded || 0; a.points += +e.points || 0; a.n4 += +e.n4 || 0;
+          if (e.qual === 'Vocational') a.vocational = true;
+        }
+        for (const [code, a] of sums) {
+          const o = las.get(code);
+          let value = null;
+          if (measure === 'subj_offer') value = (100 * a.offering) / a.schools;
+          else if (measure === 'subj_uptake') value = a.cohort ? (100 * a.entries) / a.cohort : null;
+          else if (a.graded) value = a.vocational ? (100 * a.n4) / a.graded : a.points / a.graded;
+          if (value == null) continue;
+          out.push({ la_code: code, la: o.la, region: o.region, value: r1(value), base: a.cohort });
+        }
+      }
+      return out.sort((x, y) => y.value - x.value || x.la.localeCompare(y.la));
     },
   });
 
@@ -625,6 +688,122 @@
       yfmt: p.sy === 'grade' && !voc ? f1 : f0, label: `${p.subject}: each school, ${AXIS_LABEL[p.sy]} against ${AXIS_LABEL[p.sx]}` });
   });
 
+  // ------------------------------------------------------------ local authorities
+  const LAM_UNIT = { subj_offer: '% of schools', subj_uptake: '% of cohort', subj_grade: 'average grade' };
+  const lamUnit = (p) => (p.lam === 'subj_grade' && isVocational(p.subject) ? '% level 2 pass' : LAM_UNIT[p.lam] || 'Attainment 8 points');
+  const areas = { selected: '' };
+  function laRows() {
+    const d = dash.data('la_measure');
+    if (d.status !== 'ok' || !Array.isArray(d.data)) return null;
+    const region = params().lar;
+    return { all: d.data, shown: region ? d.data.filter((r) => r.region === region) : d.data };
+  }
+  const laText = (pick) => (el) => {
+    const v = laRows();
+    const r = v && v.shown.length ? pick(v.shown) : null;
+    el.textContent = r ? `${r.la} (${f1(r.value)})` : '—';
+  };
+  dash.draw('la-top', laText((rows) => rows[0]));
+  dash.draw('la-bottom', laText((rows) => rows[rows.length - 1]));
+  dash.draw('la-median', laText((rows) => rows[Math.floor((rows.length - 1) / 2)]));
+  dash.draw('la-selected', (el) => {
+    const v = laRows();
+    const r = v && v.all.find((x) => x.la_code === areas.selected);
+    el.textContent = r ? `${r.la} (${f1(r.value)})` : 'none';
+  });
+  function selectLa(code) {
+    areas.selected = areas.selected === code ? '' : code;
+    for (const name of ['la-map', 'la-rows', 'la-selected']) dash.draw(name);
+    syncAreas();
+  }
+  function syncAreas() {
+    all('#la-schools').forEach((b) => { b.disabled = !areas.selected; });
+    all('[data-subject-only]').forEach((el) => { el.hidden = !String(params().lam).startsWith('subj_'); });
+  }
+
+  dash.draw('la-rows', (tbody) => {
+    const v = laRows();
+    tbody.replaceChildren();
+    if (!v) return;
+    const rank = new Map(v.all.map((r, i) => [r.la_code, i + 1]));
+    const cell = (text, cls) => { const td = document.createElement('td'); if (cls) td.className = cls; td.textContent = text; return td; };
+    for (const r of v.shown) {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.la_code;
+      tr.className = 'kx-click' + (r.la_code === areas.selected ? ' kx-selected' : '');
+      tr.append(cell(rank.get(r.la_code), 'kx-num'), cell(r.la), cell(r.region), cell(f1(r.value), 'kx-num'), cell(f0(r.base), 'kx-num'));
+      tr.addEventListener('click', () => selectLa(r.la_code));
+      tbody.append(tr);
+    }
+    const picked = tbody.querySelector('.kx-selected');
+    const box = tbody.closest('.kx-scroll');
+    if (picked && box) box.scrollTop = Math.max(0, picked.offsetTop - box.clientHeight / 2);
+  });
+
+  dash.draw('la-map', (el) => {
+    const v = laRows(), geo = dash.data('la_boundaries');
+    el.replaceChildren();
+    if (!v || geo.status !== 'ok' || !geo.data || !geo.data.features) {
+      el.textContent = geo.status === 'error' ? 'Failed to load' : '—';
+      return;
+    }
+    const p = params(), unit = lamUnit(p);
+    const byCode = new Map(v.all.map((r, i) => [r.la_code, { ...r, rank: i + 1 }]));
+    const values = v.all.map((r) => r.value);
+    if (!values.length) { el.textContent = 'No data for this selection'; return; }
+    // Five equal-sized bands; one hue, mixed towards the panel colour for the lower bands.
+    const steps = [16, 36, 56, 78, 100].map((pct) => `color-mix(in oklab, ${C(0)} ${pct}%, var(--color-panel))`);
+    const scale = d3.scaleQuantile().domain(values).range(d3.range(5));
+    const cuts = scale.quantiles();
+    const lo = d3.min(values), hi = d3.max(values);
+    const box = document.createElement('div');
+    box.className = 'kx-legend';
+    const title = document.createElement('span');
+    title.textContent = unit + ':';
+    box.append(title);
+    steps.forEach((color, i) => {
+      const k = document.createElement('span');
+      k.className = 'kx-key';
+      const sw = document.createElement('span');
+      sw.className = 'kx-swatch-sq';
+      sw.style.background = color;
+      const lab = document.createElement('span');
+      lab.textContent = `${f1(i === 0 ? lo : cuts[i - 1])} to ${f1(i === 4 ? hi : cuts[i])}`;
+      k.append(sw, lab);
+      box.append(k);
+    });
+    el.append(box);
+
+    const W = Math.max(260, el.clientWidth || 500), H = Math.round(Math.min(620, W * 1.18));
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', `Map of English local authorities shaded by ${unit}`);
+    const features = geo.data.features;
+    const london = features.filter((f) => f.properties.region === 'London');
+    // Coordinates are British National Grid metres, so a flat, y-flipped fit is all the projection needed.
+    const main = d3.geoPath(d3.geoIdentity().reflectY(true).fitSize([W, H], geo.data));
+    // London goes in a box over the space Wales would occupy, which this map leaves empty.
+    const inset = { x: W * 0.01, y: H * 0.43, w: W * 0.31, h: H * 0.27 };
+    const insetPath = d3.geoPath(d3.geoIdentity().reflectY(true)
+      .fitExtent([[inset.x + 4, inset.y + 16], [inset.x + inset.w - 4, inset.y + inset.h - 4]], { type: 'FeatureCollection', features: london }));
+    const tip = tipFor(el);
+    const fill = (f) => { const r = byCode.get(f.properties.code); return r ? steps[scale(r.value)] : 'var(--cds-chart-grid, var(--color-border-line))'; };
+    const cls = (f) => 'kx-la' + (p.lar && f.properties.region !== p.lar ? ' kx-dim' : '') + (f.properties.code === areas.selected ? ' kx-selected' : '');
+    const draw = (g, list, path) => g.selectAll('path').data(list).join('path').attr('class', cls).attr('d', path).style('fill', fill)
+      .on('pointermove', (event, f) => {
+        const r = byCode.get(f.properties.code);
+        tip.show(event, f.properties.name, r
+          ? [f.properties.region, `${f1(r.value)} ${unit}`, `Rank ${r.rank} of ${values.length}`, `${f0(r.base)} pupils`]
+          : [f.properties.region, 'No figure published']);
+      })
+      .on('pointerleave', () => tip.hide())
+      .on('click', (event, f) => { if (byCode.has(f.properties.code)) selectLa(f.properties.code); });
+    draw(svg.append('g'), features, main);
+    svg.append('rect').attr('class', 'kx-inset').attr('x', inset.x).attr('y', inset.y).attr('width', inset.w).attr('height', inset.h).attr('rx', 4);
+    svg.append('text').attr('x', inset.x + 6).attr('y', inset.y + 13).text('London');
+    draw(svg.append('g'), london, insetPath);
+    svg.selectAll('path.kx-selected').raise();
+  });
+
   // ------------------------------------------------------------ school finder
   const root = document.getElementById('dash-root') || document;
   const all = (sel) => root.querySelectorAll(sel);
@@ -713,6 +892,17 @@
   bind('#band-select', 'band');
   bind('#sx-select', 'sx');
   bind('#sy-select', 'sy');
+  bind('#lam-select', 'lam');
+  bind('#lar-select', 'lar');
+  all('#la-schools').forEach((b) => b.addEventListener('click', () => {
+    const v = laRows();
+    const r = v && v.all.find((x) => x.la_code === areas.selected);
+    if (!r) return;
+    finder.la = r.la; finder.type = ''; finder.query = ''; finder.page = 0;
+    all('#school-search').forEach((el) => { el.value = ''; });
+    all('#type-select').forEach((el) => { el.value = ''; });
+    showPage('schools', true);
+  }));
   all('#school-search').forEach((el) => el.addEventListener('input', () => { finder.query = el.value; finderChanged(true); }));
   all('.kx-sort').forEach((b) => b.addEventListener('click', () => {
     const key = b.dataset.sort;
@@ -733,7 +923,7 @@
   }
   all('.kx-tab').forEach((t) => t.addEventListener('click', () => showPage(t.dataset.tab, true)));
   const start = (location.hash || '').replace('#', '');
-  if (['subject', 'schools'].includes(start)) showPage(start, false);
+  if (['subject', 'areas', 'schools'].includes(start)) showPage(start, false);
 
   dash.onData(() => {
     const p = params();
@@ -743,6 +933,9 @@
     set('#band-select', p.band);
     set('#sx-select', p.sx);
     set('#sy-select', p.sy);
+    set('#lam-select', p.lam);
+    set('#lar-select', p.lar);
+    syncAreas();
     all('[data-only]').forEach((el) => { el.hidden = (el.dataset.only === 'sen') !== (p.cmp === 'sen'); });
     syncFinder();
   });

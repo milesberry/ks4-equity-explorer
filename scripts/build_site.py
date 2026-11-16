@@ -15,7 +15,8 @@ D3 = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"
 
 FOOT = """<p class="site-foot">Contains public sector information from the Department for Education
 (<a href="https://explore-education-statistics.service.gov.uk/find-statistics/key-stage-4-performance">Key stage 4 performance</a>)
-and Ofsted, licensed under the Open Government Licence v3.0.
+Ofsted and the Office for National Statistics (boundaries; contains OS data © Crown copyright and database right 2025),
+licensed under the Open Government Licence v3.0.
 Code and processed data: <a href="{repo}">{repo}</a>.</p>"""
 
 
@@ -51,8 +52,8 @@ def main(repo="https://github.com/milesberry/ks4-equity-explorer"):
         shutil.copy(DASH / name, DOCS / name)
     for name in ["shim.js", "host.css"]:
         shutil.copy(DASH / "standalone" / name, DOCS / name)
-    for csv in sorted((ROOT / "data" / "processed").glob("*.csv")):
-        shutil.copy(csv, DOCS / "data" / csv.name)
+    for data in sorted((ROOT / "data" / "processed").glob("*.*")):
+        shutil.copy(data, DOCS / "data" / data.name)
     size = sum(f.stat().st_size for f in DOCS.rglob("*") if f.is_file())
     print(f"docs/ built: {size / 1e6:.1f} MB")
 

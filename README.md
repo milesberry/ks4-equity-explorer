@@ -11,6 +11,8 @@ England, summer 2026 (provisional).
 - **Subjects** (Computer Science by default, any GCSE or vocational subject): which
   schools offer it, what share of pupils take it and the grades they get, by pupil group
   nationally and by school characteristics.
+- **Local authorities**: a map and ranked table of every upper-tier authority for any
+  of the Attainment 8 gaps or a subject's offer, uptake and grades.
 - **Find a school** by name, local authority or postcode.
 
 ## Rebuilding
@@ -28,6 +30,9 @@ Needs Python 3 with pandas and numpy. Commit and push `docs/` to update the live
 - DfE, [Key stage 4 performance](https://explore-education-statistics.service.gov.uk/find-statistics/key-stage-4-performance),
   via the [explore education statistics API](https://api.education.gov.uk/statistics/docs/).
 - Ofsted, state-funded schools inspections and outcomes: management information.
+- Office for National Statistics, Counties and Unitary Authorities (December 2025) boundaries.
+  Source: Office for National Statistics licensed under the Open Government Licence v3.0.
+  Contains OS data © Crown copyright and database right 2025.
 
 Contains public sector information licensed under the
 [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).

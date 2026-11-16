@@ -1,7 +1,8 @@
 /* Stand-in for the Claude dashboard runtime, so the same app.js runs as a plain web page.
    Provides the parts of `dash` that app.js uses: data, calc, draw, onData, params, colors. */
 (() => {
-  const FILES = ['schools', 'subject_entries', 'area_groups', 'national_subjects'];
+  const FILES = ['schools', 'subject_entries', 'area_groups', 'national_subjects', 'la_boundaries'];
+  const JSON_FILES = ['la_boundaries'];
   const store = {}, calcs = {}, draws = {}, listeners = [];
   let params = {}, failed = false;
 
@@ -45,7 +46,8 @@
 
   // Empty CSV cells become null, as they do in the dashboard runtime.
   const clean = (row) => { for (const k in row) if (row[k] === '') row[k] = null; return row; };
-  Promise.all(FILES.map((id) => d3.csv(`data/${id}.csv`, clean).then((rows) => { store[id] = rows; })))
+  const load = (id) => (JSON_FILES.includes(id) ? d3.json(`data/${id}.json`) : d3.csv(`data/${id}.csv`, clean));
+  Promise.all(FILES.map((id) => load(id).then((rows) => { store[id] = rows; })))
     .catch((err) => { failed = true; console.error(err); })
     .then(run);
 

@@ -9,7 +9,7 @@ data catalogue by its data-set *file* id.
 import gzip
 import pathlib
 import shutil
-import urllib.request
+import subprocess
 
 RAW = pathlib.Path(__file__).resolve().parent.parent / "data" / "raw"
 API = "https://api.education.gov.uk/statistics/v1/data-sets/{}/csv"
@@ -32,6 +32,13 @@ SOURCES = {
         "https://assets.publishing.service.gov.uk/media/6af2dfeb8b63641b15a5c8ba/"
         "Management_information_-_state-funded_schools_-_latest_inspections_as_at_31_October_2026.csv"
     ),
+    # ONS Open Geography: counties and unitary authorities, December 2025, ultra-generalised,
+    # England only, in British National Grid. Codes match DfE's new_la_code.
+    "la_boundaries_ctyua_dec2025_buc.geojson": (
+        "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/"
+        "Counties_and_Unitary_Authorities_December_2025_Boundaries_UK_BUC/FeatureServer/0/query"
+        "?where=CTYUA25CD%20LIKE%20%27E%25%27&outFields=CTYUA25CD,CTYUA25NM&outSR=27700&f=geojson"
+    ),
 }
 
 
@@ -39,8 +46,8 @@ def fetch(name: str, url: str) -> None:
     dest = RAW / name
     tmp = dest.with_suffix(".part")
     print(f"{name} <- {url}")
-    with urllib.request.urlopen(url, timeout=600) as r, open(tmp, "wb") as f:
-        shutil.copyfileobj(r, f)
+    # curl rather than urllib: this Mac's Python has no usable certificate store.
+    subprocess.run(["curl", "-sSfL", "--max-time", "900", "-o", str(tmp), url], check=True)
     with open(tmp, "rb") as f:
         gz = f.read(2) == b"\x1f\x8b"
     if gz:

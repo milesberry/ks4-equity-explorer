@@ -10,6 +10,7 @@ dashboard reads (data/processed).
 Suppression markers in DfE files: z = not applicable, c = suppressed (small
 numbers), x / u = unavailable / unreliable. All become blank here.
 """
+import json
 import pathlib
 import re
 
@@ -21,6 +22,7 @@ RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "processed"
 YEAR = "202526"  # latest academic year in the files
 OFSTED = "ofsted_inspections_2026-10-31.csv"
+BOUNDARIES = "la_boundaries_ctyua_dec2025_buc.geojson"
 MIN_DERIVED = 6  # smallest derived group (e.g. non-EAL) we keep
 
 
@@ -122,6 +124,7 @@ def build_schools(la_region):
     s = pd.DataFrame(index=info.index)
     s["name"] = info.school_name
     s["la"] = info.la_name
+    s["la_code"] = info.new_la_code
     s["region"] = info.new_la_code.map(la_region)
     s["region"] = s.region.fillna(of.Region.reindex(s.index)).fillna("")
     s["constituency"] = info.pcon_name
@@ -253,6 +256,38 @@ def build_national_subjects(area_groups):
     return out[["year", "subject", "qual", "topic", "group", "cohort", "entries", "n4", "n7"]]
 
 
+def build_boundaries(la_region):
+    """Upper-tier local authority outlines for the map.
+
+    Coordinates stay in British National Grid metres (rounded to 10 m), so the page can
+    draw them as a flat plane with d3.geoIdentity and needs no map projection.
+    """
+    src = json.loads((RAW / BOUNDARIES).read_text())
+
+    def ring(points):
+        out = []
+        for x, y in points:
+            pt = [round(x, -1) // 1, round(y, -1) // 1]
+            pt = [int(pt[0]), int(pt[1])]
+            if not out or out[-1] != pt:
+                out.append(pt)
+        return out
+
+    features = []
+    for f in src["features"]:
+        code = f["properties"]["CTYUA25CD"]
+        geom = f["geometry"]
+        polys = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+        polys = [[r for r in (ring(r) for r in poly) if len(r) >= 4] for poly in polys]
+        polys = [poly for poly in polys if poly]
+        features.append({
+            "type": "Feature",
+            "properties": {"code": code, "name": f["properties"]["CTYUA25NM"], "region": la_region.get(code, "")},
+            "geometry": {"type": "MultiPolygon", "coordinates": polys},
+        })
+    return {"type": "FeatureCollection", "features": features}
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     areas, la_region = build_area_groups()
@@ -264,6 +299,9 @@ def main():
         path = OUT / f"{name}.csv"
         df.to_csv(path, index=False)
         print(f"{name}: {len(df):,} rows, {path.stat().st_size / 1e6:.2f} MB")
+    path = OUT / "la_boundaries.json"
+    path.write_text(json.dumps(build_boundaries(la_region), separators=(",", ":")))
+    print(f"la_boundaries: {path.stat().st_size / 1e6:.2f} MB")
 
 
 if __name__ == "__main__":
