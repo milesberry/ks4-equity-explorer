@@ -3,7 +3,7 @@
 An interactive view of the Department for Education's Key Stage 4 performance data for
 England, summer 2026 (provisional).
 
-**Live site: https://milesberry.github.io/ks4-equity-explorer/**
+**Live site: https://milesberry.net/ks4-equity-explorer/**
 
 - **Attainment 8 gaps** between girls and boys, disadvantaged and other pupils, EAL and
   English-first-language pupils, and pupils with and without SEND: nationally, over

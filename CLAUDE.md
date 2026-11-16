@@ -55,7 +55,7 @@ uses (`cmp`, `stype`, `subject`, `band`, `sx`, `sy`), so changing one just redra
 ## Publishing to GitHub Pages
 
 Public repo https://github.com/milesberry/ks4-equity-explorer, live at
-https://milesberry.github.io/ks4-equity-explorer/ (Pages serves `docs/` on `main`).
+https://milesberry.net/ks4-equity-explorer/ (Pages serves `docs/` on `main`).
 `scripts/build_site.py` assembles `docs/` from the same `dashboard/` files plus
 `dashboard/standalone/shim.js` (a stand-in for `dash`) and `host.css` (the host's
 tokens). After any page or data change run it, commit and push. `docs/` is generated:
