@@ -229,26 +229,31 @@
         <select class="dash-select" id="subject-select-2" data-draw="subject-select" data-source="subject_entries" aria-label="Subject"></select>
       </label>
     </div>
-    <p class="kx-cap">Largest matching schools first, up to 40. Gap columns are in Attainment 8 points; blank cells are suppressed or not published.</p>
+    <p class="kx-cap">Select a column heading to sort by it, and again to reverse the order. Gap columns are in Attainment 8 points. Blank cells are suppressed or not published, and always sort last.</p>
     <div class="kx-tablewrap">
       <table class="kx-table" id="school-table" data-source="schools" data-row-key="urn">
         <thead>
           <tr>
-            <th data-field="name">School</th>
-            <th data-field="la">Local authority</th>
-            <th data-field="type">Type</th>
-            <th data-field="cohort" class="kx-num">KS4 pupils</th>
-            <th data-field="pct_dis" class="kx-num">% disadv.</th>
-            <th data-field="a8" class="kx-num">Attainment 8</th>
-            <th class="kx-num">Disadv. gap</th>
-            <th class="kx-num">Girls − boys</th>
-            <th class="kx-num">Subject entries</th>
-            <th class="kx-num">Uptake %</th>
-            <th class="kx-num">Avg grade</th>
+            <th data-field="name" aria-sort="none"><button class="kx-sort" type="button" data-sort="name">School</button></th>
+            <th data-field="la" aria-sort="none"><button class="kx-sort" type="button" data-sort="la">Local authority</button></th>
+            <th data-field="type" aria-sort="none"><button class="kx-sort" type="button" data-sort="type">Type</button></th>
+            <th data-field="cohort" class="kx-num" aria-sort="descending"><button class="kx-sort" type="button" data-sort="cohort">KS4 pupils</button></th>
+            <th data-field="pct_dis" class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="pct_dis">% disadv.</button></th>
+            <th data-field="a8" class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="a8">Attainment 8</button></th>
+            <th class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="gap_dis">Disadv. gap</button></th>
+            <th class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="gap_sex">Girls − boys</button></th>
+            <th class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="entries">Subject entries</button></th>
+            <th class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="uptake">Uptake %</button></th>
+            <th class="kx-num" aria-sort="none"><button class="kx-sort" type="button" data-sort="grade">Avg grade</button></th>
           </tr>
         </thead>
         <tbody data-draw="school-rows"></tbody>
       </table>
+    </div>
+    <div class="kx-pager" id="school-pager">
+      <button class="kx-btn kx-prev" type="button" id="school-prev">Previous</button>
+      <span class="kx-pager-info" data-draw="school-count">—</span>
+      <button class="kx-btn kx-next" type="button" id="school-next">Next</button>
     </div>
   </section>
 

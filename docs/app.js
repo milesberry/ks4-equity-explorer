@@ -619,40 +619,95 @@
   });
 
   // ------------------------------------------------------------ school finder
-  let query = '';
-  dash.draw('school-rows', (tbody) => {
+  const root = document.getElementById('dash-root') || document;
+  const all = (sel) => root.querySelectorAll(sel);
+  const PAGE_SIZE = 40;
+  const TEXT_COLS = new Set(['name', 'la', 'type']);
+  const finder = { query: '', sort: 'cohort', dir: -1, page: 0 };
+  // Every school with the values the table shows, so any column can be sorted.
+  function finderRows(schools, entries, subject) {
+    return memo('finder:' + subject, schools, () => {
+      const subj = new Map((bySubject(entries).get(subject) || []).map((r) => [r.urn, r]));
+      const voc = isVocational(subject);
+      return schools.map((r) => {
+        const x = subj.get(r.urn);
+        return {
+          urn: r.urn, name: r.name, la: r.la, type: r.type, cohort: r.cohort, pct_dis: r.pct_dis, a8: r.a8,
+          gap_dis: r.a8_nondis - r.a8_dis, gap_sex: r.a8_girls - r.a8_boys,
+          entries: x ? x.entries : 0, uptake: x && r.cohort ? (100 * x.entries) / r.cohort : NaN,
+          grade: x && x.graded && !voc ? x.points / x.graded : NaN,
+          hay: `${r.name} ${r.la} ${r.postcode || ''} ${r.urn}`.toLowerCase(),
+        };
+      });
+    });
+  }
+  function finderView() {
     const s = get('schools'), e = get('subject_entries');
+    if (!s.ok || !e.ok) return null;
+    const q = finder.query.trim().toLowerCase();
+    const key = finder.sort, dir = finder.dir, isText = TEXT_COLS.has(key);
+    const blank = (v) => (isText ? !v : !Number.isFinite(v));
+    const hits = finderRows(s.rows, e.rows, params().subject).filter((r) => !q || r.hay.includes(q)).sort((a, b) => {
+      const ba = blank(a[key]), bb = blank(b[key]);
+      if (ba || bb) return ba - bb || d3.descending(a.cohort, b.cohort); // blanks last, whichever way the sort runs
+      return dir * (isText ? a[key].localeCompare(b[key]) : a[key] - b[key]) || d3.descending(a.cohort, b.cohort);
+    });
+    const pages = Math.max(1, Math.ceil(hits.length / PAGE_SIZE));
+    finder.page = Math.min(Math.max(0, finder.page), pages - 1);
+    return { hits, pages, from: finder.page * PAGE_SIZE };
+  }
+  dash.draw('school-rows', (tbody) => {
+    const view = finderView();
     tbody.replaceChildren();
-    if (!s.ok || !e.ok) return;
-    const subj = new Map((bySubject(e.rows).get(params().subject) || []).map((r) => [r.urn, r]));
-    const q = query.trim().toLowerCase();
-    const hay = memo('hay', s.rows, () => s.rows.map((r) => `${r.name} ${r.la} ${r.postcode || ''} ${r.urn}`.toLowerCase()));
-    const hits = s.rows.filter((r, i) => !q || hay[i].includes(q)).sort((a, b) => d3.descending(a.cohort, b.cohort)).slice(0, 40);
-    const voc = isVocational(params().subject);
+    if (!view) return;
     const cell = (v, cls) => { const td = document.createElement('td'); if (cls) td.className = cls; td.textContent = v; return td; };
     const n1 = (v) => (Number.isFinite(v) ? f1(v) : '');
-    for (const r of hits) {
-      const x = subj.get(r.urn);
+    for (const r of view.hits.slice(view.from, view.from + PAGE_SIZE)) {
       const tr = document.createElement('tr');
       tr.dataset.key = r.urn;
       tr.append(cell(r.name), cell(r.la), cell(r.type), cell(f0(r.cohort), 'kx-num'), cell(n1(r.pct_dis), 'kx-num'), cell(n1(r.a8), 'kx-num'),
-        cell(n1(r.a8_nondis - r.a8_dis), 'kx-num'), cell(n1(r.a8_girls - r.a8_boys), 'kx-num'),
-        cell(x ? f0(x.entries) : '0', 'kx-num'), cell(x ? f1((100 * x.entries) / r.cohort) : '', 'kx-num'),
-        cell(x && x.graded && !voc ? f1(x.points / x.graded) : '', 'kx-num'));
+        cell(n1(r.gap_dis), 'kx-num'), cell(n1(r.gap_sex), 'kx-num'), cell(f0(r.entries), 'kx-num'), cell(n1(r.uptake), 'kx-num'), cell(n1(r.grade), 'kx-num'));
       tbody.append(tr);
     }
   });
+  dash.draw('school-count', (el) => {
+    const view = finderView();
+    if (!view) { el.textContent = '—'; return; }
+    const n = view.hits.length;
+    el.textContent = n ? `${f0(view.from + 1)} to ${f0(Math.min(n, view.from + PAGE_SIZE))} of ${f0(n)} schools` : 'No schools match';
+  });
+  function finderChanged(resetPage) {
+    if (resetPage) finder.page = 0;
+    dash.draw('school-rows');
+    dash.draw('school-count');
+    syncFinder();
+  }
+  function syncFinder() {
+    const view = finderView();
+    all('.kx-sort').forEach((b) => {
+      const on = b.dataset.sort === finder.sort;
+      b.closest('th').setAttribute('aria-sort', on ? (finder.dir > 0 ? 'ascending' : 'descending') : 'none');
+    });
+    all('.kx-prev').forEach((b) => { b.disabled = !view || finder.page === 0; });
+    all('.kx-next').forEach((b) => { b.disabled = !view || finder.page >= view.pages - 1; });
+  }
 
   // ------------------------------------------------------------ controls and tabs (listen and set state only)
-  const root = document.getElementById('dash-root') || document;
-  const all = (sel) => root.querySelectorAll(sel);
   const bind = (sel, name) => all(sel).forEach((el) => el.addEventListener('change', () => dash.setParams({ [name]: el.value })));
   bind('.kx-cmp', 'cmp');
   bind('.kx-stype', 'stype');
   bind('#band-select', 'band');
   bind('#sx-select', 'sx');
   bind('#sy-select', 'sy');
-  all('#school-search').forEach((el) => el.addEventListener('input', () => { query = el.value; dash.draw('school-rows'); }));
+  all('#school-search').forEach((el) => el.addEventListener('input', () => { finder.query = el.value; finderChanged(true); }));
+  all('.kx-sort').forEach((b) => b.addEventListener('click', () => {
+    const key = b.dataset.sort;
+    if (finder.sort === key) finder.dir = -finder.dir;
+    else { finder.sort = key; finder.dir = TEXT_COLS.has(key) ? 1 : -1; } // numbers start highest first
+    finderChanged(true);
+  }));
+  all('.kx-prev').forEach((b) => b.addEventListener('click', () => { finder.page -= 1; finderChanged(false); }));
+  all('.kx-next').forEach((b) => b.addEventListener('click', () => { finder.page += 1; finderChanged(false); }));
 
   function showPage(name, link) {
     let found = false;
@@ -674,5 +729,6 @@
     set('#sx-select', p.sx);
     set('#sy-select', p.sy);
     all('[data-only]').forEach((el) => { el.hidden = (el.dataset.only === 'sen') !== (p.cmp === 'sen'); });
+    syncFinder();
   });
 })();

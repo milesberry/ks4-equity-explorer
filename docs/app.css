@@ -60,4 +60,16 @@
 .kx-details summary { cursor: pointer; color: var(--color-fg); }
 .kx-details ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; max-width: 80ch; line-height: 1.45; }
 
+.kx-sort { appearance: none; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; white-space: nowrap; }
+.kx-sort:hover { color: var(--color-fg); }
+.kx-sort::after { content: "↕"; margin-left: 4px; opacity: 0.35; }
+.kx-table th[aria-sort="ascending"] .kx-sort, .kx-table th[aria-sort="descending"] .kx-sort { color: var(--color-fg); }
+.kx-table th[aria-sort="ascending"] .kx-sort::after { content: "↑"; opacity: 1; }
+.kx-table th[aria-sort="descending"] .kx-sort::after { content: "↓"; opacity: 1; }
+.kx-pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-md, 12px); font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.kx-btn { appearance: none; font: inherit; font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg); background-color: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius, 8px); padding: 6px 12px; cursor: pointer; }
+.kx-btn:hover:not(:disabled) { background-color: var(--color-panel); }
+.kx-btn:disabled { color: var(--color-fg-muted); opacity: 0.5; cursor: default; }
+.kx-sort:focus-visible, .kx-btn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+
 .kx [hidden] { display: none !important; }
