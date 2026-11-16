@@ -460,6 +460,13 @@
       label: `Each school: Attainment 8 of ${c.b} against ${c.a}` });
   });
 
+  text('gap-count', ['schools'], (d) => {
+    const p = params(), c = CMP[p.cmp];
+    const has = p.cmp === 'sen' ? (s) => Number.isFinite(s.pct_sen) && Number.isFinite(s.a8)
+      : (s) => Number.isFinite(s['a8_' + c.ka]) && Number.isFinite(s['a8_' + c.kb]);
+    return f0(schoolsOfType(d.schools, p.stype).filter(has).length);
+  });
+
   chart('gap-hist', ['schools'], (el, d) => {
     const p = params(), c = CMP[p.cmp];
     if (p.cmp === 'sen') return;

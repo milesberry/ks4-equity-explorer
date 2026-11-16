@@ -72,4 +72,6 @@
 .kx-btn:disabled { color: var(--color-fg-muted); opacity: 0.5; cursor: default; }
 .kx-sort:focus-visible, .kx-btn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
 
+.kx-count { padding-bottom: 8px; }
+
 .kx [hidden] { display: none !important; }

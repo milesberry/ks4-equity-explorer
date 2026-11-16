@@ -34,14 +34,6 @@
           <option value="sen">SEND and no SEND</option>
         </select>
       </label>
-      <label class="kx-field">Schools shown
-        <select class="dash-select kx-stype" id="stype-gaps" aria-label="School type">
-          <option value="State mainstream">State-funded mainstream</option>
-          <option value="Independent">Independent</option>
-          <option value="Special">Special</option>
-          <option value="All">All schools</option>
-        </select>
-      </label>
     </div>
 
     <h2 class="kx-h2" id="gap-national">England, all state-funded schools</h2>
@@ -82,6 +74,17 @@
     </div>
 
     <h2 class="kx-h2" id="gap-schools">School by school</h2>
+    <div class="kx-filters">
+      <label class="kx-field">Schools shown in these two charts
+        <select class="dash-select kx-stype" id="stype-gaps" aria-label="School type for the school-by-school charts">
+          <option value="State mainstream">State-funded mainstream</option>
+          <option value="Independent">Independent</option>
+          <option value="Special">Special</option>
+          <option value="All">All schools</option>
+        </select>
+      </label>
+      <p class="kx-cap kx-count"><span data-draw="gap-count" data-source="schools">—</span> schools have figures published for this comparison.</p>
+    </div>
     <p class="kx-cap" data-only="pair">Each dot is one school. Schools on the dashed line have no gap; the further a dot sits from it, the wider the gap in that school. Groups too small to publish are left out.</p>
     <p class="kx-cap" data-only="sen">The Department for Education does not publish Attainment 8 for pupils with SEND school by school, so this view shows each school's overall Attainment 8 against the share of its cohort with SEND.</p>
     <div class="kx-grid2">
