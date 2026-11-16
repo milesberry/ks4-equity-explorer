@@ -147,8 +147,16 @@
         gap_dis: ['Not disadvantaged', 'Disadvantaged'], gap_sex: ['Girls', 'Boys'],
         gap_eal: ['English first language', 'EAL'], gap_sen: ['No SEND', 'SEND'],
       };
+      // Intake measures: a group's pupils as a share of all pupils at the end of KS4.
+      const shares = { pct_dis: 'Disadvantaged', pct_eal: 'EAL', pct_sen: 'SEND' };
       const out = [];
-      if (pairs[measure]) {
+      if (shares[measure]) {
+        for (const o of las.values()) {
+          const g = o.groups[shares[measure]], total = o.groups['All pupils'];
+          if (!g || !total || !total.pupils) continue;
+          out.push({ la_code: o.la_code, la: o.la, region: o.region, value: r1((100 * g.pupils) / total.pupils), base: total.pupils });
+        }
+      } else if (pairs[measure]) {
         const [a, b] = pairs[measure];
         for (const o of las.values()) {
           const ga = o.groups[a], gb = b ? o.groups[b] : null;
@@ -689,7 +697,8 @@
   });
 
   // ------------------------------------------------------------ local authorities
-  const LAM_UNIT = { subj_offer: '% of schools', subj_uptake: '% of cohort', subj_grade: 'average grade' };
+  const LAM_UNIT = { subj_offer: '% of schools', subj_uptake: '% of cohort', subj_grade: 'average grade',
+    pct_dis: '% of pupils', pct_eal: '% of pupils', pct_sen: '% of pupils' };
   const lamUnit = (p) => (p.lam === 'subj_grade' && isVocational(p.subject) ? '% level 2 pass' : LAM_UNIT[p.lam] || 'Attainment 8 points');
   const areas = { selected: '' };
   function laRows() {
