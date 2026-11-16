@@ -45,6 +45,8 @@ Read the type's own instructions first (`Artifact` read of the URL) before chang
    and `updated.at`. Dataset ids: `schools`, `subject_entries`, `area_groups`,
    `national_subjects`.
 3. Afterwards read `data/users/me` docs `check` and `runs` to see whether the page ran.
+   Fetch `check` alone with `get` (or pass `out_dir`): the `page` doc beside it holds the
+   whole rendered page, every scatter dot included, and is very large.
 
 Page rules that bite: scripts get only `d3` v7 and `dash` (no other libraries, no
 network); static words stay in the HTML and scripts only fill `data-draw` elements;
