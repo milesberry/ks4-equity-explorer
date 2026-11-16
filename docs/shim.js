@@ -51,7 +51,9 @@
 
   // Empty CSV cells become null, as they do in the dashboard runtime.
   const clean = (row) => { for (const k in row) if (row[k] === '') row[k] = null; return row; };
-  const load = (id) => (JSON_FILES.includes(id) ? d3.json(`data/${id}.json`) : d3.csv(`data/${id}.csv`, clean));
+  // The version changes whenever the data does, so browsers never reuse an old copy.
+  const version = window.KX_DATA_VERSION ? '?v=' + window.KX_DATA_VERSION : '';
+  const load = (id) => (JSON_FILES.includes(id) ? d3.json(`data/${id}.json${version}`) : d3.csv(`data/${id}.csv${version}`, clean));
   Promise.all(FILES.map((id) => load(id).then((rows) => { store[id] = rows; })))
     .catch((err) => { failed = true; console.error(err); })
     .then(run);

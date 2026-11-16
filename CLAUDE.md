@@ -62,7 +62,8 @@ https://milesberry.net/ks4-equity-explorer/ (Pages serves `docs/` on `main`).
 `scripts/build_site.py` assembles `docs/` from the same `dashboard/` files plus
 `dashboard/standalone/shim.js` (a stand-in for `dash`) and `host.css` (the host's
 tokens). After any page or data change run it, commit and push. `docs/` is generated:
-edit `dashboard/`, never `docs/`. Keep the Claude artifact and the Pages site in step.
+edit `dashboard/`, never `docs/`. The build stamps every script, stylesheet and data URL
+with `?v=<content hash>`; without that, browsers keep running an old `app.js` after a push. Keep the Claude artifact and the Pages site in step.
 Anything `app.js` newly uses from `dash` must also be added to the shim.
 
 ## View in the link
