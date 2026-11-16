@@ -724,6 +724,7 @@
     areas.selected = areas.selected === code ? '' : code;
     for (const name of ['la-map', 'la-rows', 'la-selected']) dash.draw(name);
     syncAreas();
+    updateLink();
   }
   function syncAreas() {
     all('#la-schools').forEach((b) => { b.disabled = !areas.selected; });
@@ -814,6 +815,7 @@
   });
 
   // ------------------------------------------------------------ school finder
+  let currentPage = 'gaps', lastLink = null;
   const root = document.getElementById('dash-root') || document;
   const all = (sel) => root.querySelectorAll(sel);
   const PAGE_SIZE = 40;
@@ -883,6 +885,7 @@
     dash.draw('school-rows');
     dash.draw('school-count');
     syncFinder();
+    updateLink();
   }
   function syncFinder() {
     const view = finderView();
@@ -927,15 +930,91 @@
     let found = false;
     all('[data-page]').forEach((sec) => { const on = sec.dataset.page === name; sec.hidden = !on; found = found || on; });
     if (!found) return showPage('gaps', false);
+    currentPage = name;
     all('.kx-tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === name)));
-    if (link) dash.setLink(name);
+    if (link) updateLink();
   }
   all('.kx-tab').forEach((t) => t.addEventListener('click', () => showPage(t.dataset.tab, true)));
+
+  // ------------------------------------------------------------ the view in the link
+  // The link's #name carries the whole view, so a copied address reopens the same tab,
+  // filters, selection and sort. Only letters, digits and hyphens survive in an artifact
+  // link, so the form is  tab--<key><value>--<key><value>  with one-letter keys, values
+  // that differ from the defaults only, and any other character written as -hh (hex).
+  //   e.g.  #areas--mpct-5feal--rLondon   #subject--sFrench--csex
+  const LINK_PARAMS = { c: 'cmp', t: 'stype', s: 'subject', b: 'band', x: 'sx', y: 'sy', m: 'lam', r: 'lar' };
+  const PARAM_SELECT = { cmp: '.kx-cmp', stype: '.kx-stype', band: '#band-select', sx: '#sx-select', sy: '#sy-select', lam: '#lam-select', lar: '#lar-select' };
+  const encLink = (v) => Array.from(new TextEncoder().encode(String(v)))
+    .map((b) => (/[A-Za-z0-9]/.test(String.fromCharCode(b)) ? String.fromCharCode(b) : '-' + b.toString(16).padStart(2, '0'))).join('');
+  function decLink(link) {
+    const tokens = [];
+    let bytes = [];
+    const flush = () => { tokens.push(new TextDecoder().decode(new Uint8Array(bytes))); bytes = []; };
+    for (let i = 0; i < link.length; i += 1) {
+      if (link[i] !== '-') { bytes.push(link.charCodeAt(i) & 255); continue; }
+      if (link[i + 1] === '-') { flush(); i += 1; continue; }
+      const b = parseInt(link.slice(i + 1, i + 3), 16);
+      if (Number.isFinite(b)) bytes.push(b);
+      i += 2;
+    }
+    flush();
+    return tokens;
+  }
+  function linkState() {
+    const p = params(), parts = [currentPage];
+    for (const [k, name] of Object.entries(LINK_PARAMS)) if (p[name] != null && p[name] !== DEFAULTS[name]) parts.push(k + encLink(p[name]));
+    if (areas.selected) parts.push('a' + encLink(areas.selected));
+    if (finder.query.trim()) parts.push('q' + encLink(finder.query.trim()));
+    if (finder.la) parts.push('l' + encLink(finder.la));
+    if (finder.type) parts.push('k' + encLink(finder.type));
+    if (finder.sort !== 'cohort' || finder.dir !== -1) parts.push('o' + encLink(finder.sort), 'd' + (finder.dir > 0 ? 'a' : 'd'));
+    if (finder.page) parts.push('p' + finder.page);
+    return parts.join('--');
+  }
+  function updateLink() {
+    const link = linkState();
+    if (link === lastLink) return;
+    lastLink = link;
+    dash.setLink(link);
+  }
+  const hasOption = (sel, v) => [...all(sel)].some((el) => [...el.options].some((o) => o.value === v));
+  function applyLink(link) {
+    const [page, ...tokens] = decLink(link);
+    const got = {};
+    for (const t of tokens) if (t.length > 1) got[t[0]] = t.slice(1);
+    const next = { ...DEFAULTS };
+    for (const [k, name] of Object.entries(LINK_PARAMS)) {
+      if (got[k] != null && (!PARAM_SELECT[name] || hasOption(PARAM_SELECT[name], got[k]))) next[name] = got[k];
+    }
+    areas.selected = got.a || '';
+    finder.query = got.q || '';
+    finder.la = got.l || '';
+    finder.type = got.k && hasOption('#type-select', got.k) ? got.k : '';
+    const sortable = [...all('.kx-sort')].map((b) => b.dataset.sort);
+    finder.sort = sortable.includes(got.o) ? got.o : 'cohort';
+    finder.dir = got.o && sortable.includes(got.o) ? (got.d === 'a' ? 1 : -1) : -1;
+    finder.page = Math.max(0, parseInt(got.p, 10) || 0);
+    all('#school-search').forEach((el) => { el.value = finder.query; });
+    all('#type-select').forEach((el) => { el.value = finder.type; });
+    showPage(page, false);
+    dash.setParams(next);
+    lastLink = linkState();
+  }
   const start = (location.hash || '').replace('#', '');
-  if (['subject', 'areas', 'schools'].includes(start)) showPage(start, false);
+  if (start) applyLink(start);
+  else lastLink = linkState();
+  window.addEventListener('hashchange', () => {
+    const link = (location.hash || '').replace('#', '');
+    if (link && link !== lastLink) applyLink(link);
+  });
 
   dash.onData(() => {
     const p = params();
+    // A link can name a subject that is not in the data; fall back to the default.
+    if (p.subject !== DEFAULTS.subject) {
+      const e = get('subject_entries');
+      if (e.ok && !bySubject(e.rows).has(p.subject)) { dash.setParams({ subject: DEFAULTS.subject }); return; }
+    }
     const set = (sel, v) => all(sel).forEach((el) => { if (document.activeElement !== el) el.value = v; });
     set('.kx-cmp', p.cmp);
     set('.kx-stype', p.stype);
@@ -947,5 +1026,6 @@
     syncAreas();
     all('[data-only]').forEach((el) => { el.hidden = (el.dataset.only === 'sen') !== (p.cmp === 'sen'); });
     syncFinder();
+    if (lastLink !== null) updateLink();
   });
 })();

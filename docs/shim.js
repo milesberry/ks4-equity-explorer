@@ -4,7 +4,7 @@
   const FILES = ['schools', 'subject_entries', 'area_groups', 'national_subjects', 'la_boundaries'];
   const JSON_FILES = ['la_boundaries'];
   const store = {}, calcs = {}, draws = {}, listeners = [];
-  let params = {}, failed = false;
+  let params = {}, failed = false, lastPlace = null;
 
   function runDraw(name) {
     const fn = draws[name];
@@ -40,7 +40,12 @@
     params: () => ({ ...params }),
     setParams(next) { params = { ...params, ...next }; run(); },
     resetParams() { params = {}; run(); },
-    setLink(name) { history.replaceState(null, '', '#' + name); run(); },
+    setLink(name) {
+      // Redraw only when the tab changes; filter changes have already been drawn.
+      const place = String(name).split('--')[0];
+      history.replaceState(null, '', '#' + name);
+      if (place !== lastPlace) { lastPlace = place; run(); }
+    },
     refresh() {},
   };
 

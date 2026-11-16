@@ -65,6 +65,17 @@ tokens). After any page or data change run it, commit and push. `docs/` is gener
 edit `dashboard/`, never `docs/`. Keep the Claude artifact and the Pages site in step.
 Anything `app.js` newly uses from `dash` must also be added to the shim.
 
+## View in the link
+
+The link's `#name` holds the whole view (tab, filters, selected authority, school search,
+sort and page), written and read by `linkState` / `applyLink` in `app.js`. Format:
+`tab--<key><value>--...`, one-letter keys, non-default values only, and any character
+other than a letter or digit as `-hh` hex, because Claude artifact links keep only
+letters, digits and hyphens. Example: `#areas--mpct-5feal--rLondon`. A new filter needs
+a key in `LINK_PARAMS` (or in `linkState`/`applyLink` for non-param state). Values from a
+link are checked against the select options before use. Works on the Pages site; whether
+the Claude artifact passes these longer names through its own share link is unconfirmed.
+
 ## Local authority map
 
 - Boundaries: ONS counties and unitary authorities, December 2025, ultra-generalised
