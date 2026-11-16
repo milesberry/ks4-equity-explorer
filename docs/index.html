@@ -225,6 +225,18 @@
       <label class="kx-field kx-grow">School, local authority or postcode
         <input class="kx-input" id="school-search" type="search" placeholder="Start typing a name" autocomplete="off">
       </label>
+      <label class="kx-field">Local authority
+        <select class="dash-select" id="la-select" data-draw="la-select" data-source="schools" aria-label="Local authority"></select>
+      </label>
+      <label class="kx-field">School type
+        <select class="dash-select" id="type-select" aria-label="School type">
+          <option value="">All types</option>
+          <option value="State mainstream">State-funded mainstream</option>
+          <option value="Special">Special</option>
+          <option value="Independent">Independent</option>
+          <option value="FE college">FE college</option>
+        </select>
+      </label>
       <label class="kx-field">Subject
         <select class="dash-select" id="subject-select-2" data-draw="subject-select" data-source="subject_entries" aria-label="Subject"></select>
       </label>

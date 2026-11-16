@@ -623,7 +623,7 @@
   const all = (sel) => root.querySelectorAll(sel);
   const PAGE_SIZE = 40;
   const TEXT_COLS = new Set(['name', 'la', 'type']);
-  const finder = { query: '', sort: 'cohort', dir: -1, page: 0 };
+  const finder = { query: '', la: '', type: '', sort: 'cohort', dir: -1, page: 0 };
   // Every school with the values the table shows, so any column can be sorted.
   function finderRows(schools, entries, subject) {
     return memo('finder:' + subject, schools, () => {
@@ -641,13 +641,20 @@
       });
     });
   }
+  dash.draw('la-select', (sel) => {
+    const s = get('schools');
+    const las = s.ok ? memo('las', s.rows, () => [...new Set(s.rows.map((r) => r.la))].filter(Boolean).sort(d3.ascending)) : [];
+    sel.replaceChildren(new Option('All local authorities', ''), ...las.map((la) => new Option(la, la)));
+    sel.value = finder.la;
+    sel.onchange = () => { finder.la = sel.value; finderChanged(true); };
+  });
   function finderView() {
     const s = get('schools'), e = get('subject_entries');
     if (!s.ok || !e.ok) return null;
     const q = finder.query.trim().toLowerCase();
     const key = finder.sort, dir = finder.dir, isText = TEXT_COLS.has(key);
     const blank = (v) => (isText ? !v : !Number.isFinite(v));
-    const hits = finderRows(s.rows, e.rows, params().subject).filter((r) => !q || r.hay.includes(q)).sort((a, b) => {
+    const hits = finderRows(s.rows, e.rows, params().subject).filter((r) => (!finder.la || r.la === finder.la) && (!finder.type || r.type === finder.type) && (!q || r.hay.includes(q))).sort((a, b) => {
       const ba = blank(a[key]), bb = blank(b[key]);
       if (ba || bb) return ba - bb || d3.descending(a.cohort, b.cohort); // blanks last, whichever way the sort runs
       return dir * (isText ? a[key].localeCompare(b[key]) : a[key] - b[key]) || d3.descending(a.cohort, b.cohort);
@@ -706,6 +713,7 @@
     else { finder.sort = key; finder.dir = TEXT_COLS.has(key) ? 1 : -1; } // numbers start highest first
     finderChanged(true);
   }));
+  all('#type-select').forEach((el) => el.addEventListener('change', () => { finder.type = el.value; finderChanged(true); }));
   all('.kx-prev').forEach((b) => b.addEventListener('click', () => { finder.page -= 1; finderChanged(false); }));
   all('.kx-next').forEach((b) => b.addEventListener('click', () => { finder.page += 1; finderChanged(false); }));
 
