@@ -1,0 +1,43 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>harness</title>
+<style>
+:root{--color-fg:#0b0b0b;--color-fg-muted:#6b6a66;--color-bg:#fcfcfb;--color-panel:#f6f5f2;--color-border-line:#e1e0d9;--cds-text-secondary:#52514e;--cds-chart-grid:#e9e8e3;--cds-chart-axis:#c3c2b7;--cds-chart-muted:#b5b4ad;--cds-chart-reference:#898781;--cds-radius:8px;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}
+body{margin:0;padding:24px;background:var(--color-bg);font:14px system-ui}
+.dash-select{font:inherit;padding:6px 28px 6px 10px;border:1px solid var(--color-border-line);border-radius:8px}
+</style>
+<div id="dash-root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+// Local stand-in for the dashboard runtime, for development only.
+(async () => {
+  const files = { schools:1, subject_entries:1, area_groups:1, national_subjects:1 };
+  const store = {}, calcs = {}, draws = {}, onData = [];
+  let P = {};
+  await Promise.all(Object.keys(files).map(async id => { store[id] = await d3.csv(`../../data/processed/${id}.csv`, r => { for (const k in r) if (r[k]==='') r[k]=null; return r; }); }));
+  const run = () => {
+    for (const k in calcs) calcs[k].value = undefined;
+    onData.forEach(f => f());
+    for (const [name, fn] of Object.entries(draws)) document.querySelectorAll(`[data-draw="${name}"]`).forEach(el => { if (!el.closest('[hidden]')) { try { fn(el); } catch (e) { console.error('draw', name, e); } } });
+  };
+  window.dash = {
+    colors: ['var(--s1)','var(--s2)','var(--s3)'],
+    data(id) {
+      if (store[id]) return { status:'ok', data: store[id] };
+      const c = calcs[id]; if (!c) return { status:'missing', data: [] };
+      if (c.value === undefined) c.value = c.fn(...c.inputs.map(i => dash.data(i).data));
+      return { status:'ok', data: c.value };
+    },
+    calc(id, def) { calcs[id] = def; },
+    draw(name, fn) { if (fn) draws[name] = fn; else run(); },
+    onData(fn) { onData.push(fn); },
+    params: () => ({...P}), setParams(o) { P = {...P, ...o}; run(); }, resetParams() { P = {}; run(); },
+    setLink(n) { history.replaceState(null,'','#'+n); run(); }, refresh() {},
+  };
+  const html = await (await fetch('../index.html')).text();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const css = document.createElement('link'); css.rel='stylesheet'; css.href='../app.css'; document.head.append(css);
+  doc.querySelectorAll('script,link,meta').forEach(n => n.remove());
+  document.getElementById('dash-root').append(...doc.body.childNodes);
+  const s = document.createElement('script'); s.src='../app.js'; s.onload = () => { run(); document.querySelectorAll('.kx-tab').forEach(t=>t.addEventListener('click',()=>setTimeout(run,0))); }; document.body.append(s);
+  let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 150); });
+})();
+</script>

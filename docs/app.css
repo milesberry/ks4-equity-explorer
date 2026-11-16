@@ -1,0 +1,63 @@
+/* KS4 Equity Explorer. Everything is scoped under .kx: bare-tag rules would restyle the host dashboard. */
+.kx { display: flex; flex-direction: column; gap: var(--cds-gap-lg, 20px); color: var(--color-fg); font-family: var(--font-anthropic-sans, system-ui, sans-serif); }
+.kx-head { display: flex; flex-direction: column; gap: var(--cds-gap-sm, 8px); }
+.kx-title { font-family: var(--font-anthropic-serif, Georgia, serif); font-weight: 400; font-size: var(--cds-font-size-title, 28px); margin: 0; text-wrap: balance; }
+.kx-lede { margin: 0; max-width: 68ch; font-size: var(--cds-font-size-heading, 17px); line-height: 1.45; }
+.kx-note, .kx-cap { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption, 12px); line-height: 1.45; max-width: 80ch; }
+.kx-h2 { margin: var(--cds-gap-md, 12px) 0 0; font-size: var(--cds-font-size-heading, 17px); font-weight: var(--cds-font-weight-medium, 500); }
+.kx-h3 { margin: 0; font-size: var(--cds-font-size-body, 14px); font-weight: var(--cds-font-weight-medium, 500); }
+
+.kx-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs, 4px); border-bottom: 1px solid var(--color-border-line); }
+.kx-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: var(--cds-pad-sm, 8px) var(--cds-pad-md, 12px); font: inherit; color: var(--color-fg-muted); cursor: pointer; }
+.kx-tab:hover { color: var(--color-fg); }
+.kx-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium, 500); }
+.kx-tab:focus-visible, .kx-input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+
+.kx-page { display: flex; flex-direction: column; gap: var(--cds-gap-md, 12px); }
+.kx-filters { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md, 12px); align-items: end; }
+.kx-inline { margin: var(--cds-gap-sm, 8px) 0; }
+.kx-field { display: flex; flex-direction: column; gap: 4px; font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg-muted); min-width: 0; }
+.kx-field .dash-select { max-width: 100%; }
+.kx-grow { flex: 1 1 240px; }
+.kx-input { font: inherit; font-size: var(--cds-font-size-body, 14px); color: var(--color-fg); background-color: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius, 8px); padding: 6px 10px; min-width: 0; }
+
+.kx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--cds-gap-md, 12px); }
+.kx-tile { display: flex; flex-direction: column; gap: 2px; padding: var(--cds-pad-md, 12px) 0; border-top: 1px solid var(--color-border-line); min-width: 0; }
+.kx-tile-label { font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg-muted); }
+.kx-big { font-family: var(--font-anthropic-serif, Georgia, serif); font-weight: 400; font-size: 34px; line-height: 1.15; }
+.kx-big-sep, .kx-unit { color: var(--color-fg-muted); font-size: 0.6em; }
+.kx-tile-sub { font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg-muted); line-height: 1.4; }
+
+.kx-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--cds-gap-md, 12px); }
+.kx-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--cds-gap-lg, 20px); }
+.kx-grid2 > *, .kx-grid3 > * { min-width: 0; }
+.kx-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius, 8px); padding: var(--cds-pad-lg, 16px); display: flex; flex-direction: column; gap: var(--cds-gap-xs, 4px); min-width: 0; }
+
+.kx-chart { position: relative; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption, 12px); }
+.kx-chart svg { display: block; overflow: visible; }
+.kx-chart svg text { fill: var(--cds-text-secondary, var(--color-fg-muted)); font-size: var(--cds-font-size-caption, 12px); font-family: inherit; font-variant-numeric: tabular-nums; }
+.kx-chart svg text.kx-strong { fill: var(--color-fg); }
+.kx-chart .domain, .kx-chart .tick line { stroke: var(--cds-chart-axis, var(--color-border-line)); }
+.kx-chart .kx-gridline line { stroke: var(--cds-chart-grid, var(--color-border-line)); }
+.kx-chart .kx-gridline .domain { display: none; }
+.kx-chart .kx-ref { stroke: var(--cds-chart-reference, var(--color-fg-muted)); stroke-dasharray: 4 3; fill: none; }
+.kx-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px; color: var(--cds-text-secondary, var(--color-fg-muted)); }
+.kx-key { display: inline-flex; align-items: center; gap: 6px; }
+.kx-swatch { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.kx-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover, var(--color-bg)); border: 1px solid var(--cds-border, var(--color-border-line)); box-shadow: var(--cds-shadow-popover, 0 2px 8px rgba(0,0,0,.15)); border-radius: var(--cds-radius, 8px); padding: 6px 8px; color: var(--color-fg); font-size: var(--cds-font-size-caption, 12px); line-height: 1.4; max-width: 240px; white-space: normal; }
+.kx-tip-title { font-weight: var(--cds-font-weight-medium, 500); }
+.kx-tip-sub { color: var(--cds-text-secondary, var(--color-fg-muted)); }
+
+.kx-tablewrap { overflow-x: auto; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius, 8px); }
+.kx-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption, 12px); font-variant-numeric: tabular-nums; }
+.kx-table th, .kx-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+.kx-table th { color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium, 500); background: var(--color-panel); }
+.kx-table td:first-child { white-space: normal; min-width: 180px; color: var(--color-fg); }
+.kx-table .kx-num { text-align: right; }
+.kx-table tbody tr:last-child td { border-bottom: 0; }
+
+.kx-details { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md, 12px); font-size: var(--cds-font-size-caption, 12px); color: var(--color-fg-muted); }
+.kx-details summary { cursor: pointer; color: var(--color-fg); }
+.kx-details ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; max-width: 80ch; line-height: 1.45; }
+
+.kx [hidden] { display: none !important; }

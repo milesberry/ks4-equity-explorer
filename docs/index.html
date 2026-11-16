@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KS4 Equity Explorer</title>
+<meta name="description" content="Attainment 8 gaps and subject offer, uptake and grades in England's secondary schools, from DfE Key Stage 4 performance data.">
+<link rel="stylesheet" href="host.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="dash-root">
+<div class="kx">
+
+  <header class="kx-head" id="top">
+    <h1 class="kx-title">KS4 Equity Explorer</h1>
+    <p class="kx-lede" id="takeaway">
+      In <span data-draw="t-year" data-source="national_gaps" data-field="year" data-where="cmp=dis">—</span>,
+      disadvantaged pupils in state-funded schools in England averaged
+      <b data-draw="t-dis" data-source="national_latest" data-field="a8" data-where="group=Disadvantaged">—</b>
+      Attainment 8 points against
+      <b data-draw="t-nondis" data-source="national_latest" data-field="a8" data-where="group=Not disadvantaged">—</b>
+      for other pupils, a gap of
+      <b data-draw="t-disgap" data-source="national_gaps" data-field="gap" data-where="cmp=dis">—</b> points.
+      Girls scored <b data-draw="t-sexgap" data-source="national_gaps" data-field="gap" data-where="cmp=sex">—</b> points more than boys.
+    </p>
+    <p class="kx-note">GCSE and equivalent results, summer 2026 (provisional). Department for Education performance data, with Ofsted school context.</p>
+  </header>
+
+  <nav class="kx-tabs" role="tablist" aria-label="Views">
+    <button class="kx-tab" role="tab" id="tab-gaps" data-tab="gaps" aria-selected="true">Attainment 8 gaps</button>
+    <button class="kx-tab" role="tab" id="tab-subject" data-tab="subject" aria-selected="false">Subjects: offer, uptake, grades</button>
+    <button class="kx-tab" role="tab" id="tab-schools" data-tab="schools" aria-selected="false">Find a school</button>
+  </nav>
+
+  <!-- ============================================================ GAPS -->
+  <section class="kx-page" id="gaps" data-page="gaps">
+    <div class="kx-filters">
+      <label class="kx-field">Compare
+        <select class="dash-select kx-cmp" id="cmp-gaps" aria-label="Pupil groups to compare">
+          <option value="dis">Disadvantaged and other pupils</option>
+          <option value="sex">Girls and boys</option>
+          <option value="eal">EAL and English first language</option>
+          <option value="sen">SEND and no SEND</option>
+        </select>
+      </label>
+      <label class="kx-field">Schools shown
+        <select class="dash-select kx-stype" id="stype-gaps" aria-label="School type">
+          <option value="State mainstream">State-funded mainstream</option>
+          <option value="Independent">Independent</option>
+          <option value="Special">Special</option>
+          <option value="All">All schools</option>
+        </select>
+      </label>
+    </div>
+
+    <h2 class="kx-h2" id="gap-national">England, all state-funded schools</h2>
+    <div class="kx-tiles">
+      <div class="kx-tile" id="tile-a">
+        <div class="kx-tile-label" data-draw="lab-a">—</div>
+        <div class="kx-big" data-draw="kpi-a" data-source="national_gaps" data-field="a8_a">—</div>
+        <div class="kx-tile-sub">average Attainment 8 · <span data-draw="kpi-a-n" data-source="national_gaps" data-field="pupils_a">—</span> pupils</div>
+      </div>
+      <div class="kx-tile" id="tile-b">
+        <div class="kx-tile-label" data-draw="lab-b">—</div>
+        <div class="kx-big" data-draw="kpi-b" data-source="national_gaps" data-field="a8_b">—</div>
+        <div class="kx-tile-sub">average Attainment 8 · <span data-draw="kpi-b-n" data-source="national_gaps" data-field="pupils_b">—</span> pupils</div>
+      </div>
+      <div class="kx-tile" id="tile-gap">
+        <div class="kx-tile-label">Gap</div>
+        <div class="kx-big" data-draw="kpi-gap" data-source="national_gaps" data-field="gap">—</div>
+        <div class="kx-tile-sub">points, <span data-draw="lab-a2">—</span> minus <span data-draw="lab-b2">—</span></div>
+      </div>
+      <div class="kx-tile" id="tile-sen" data-only="sen">
+        <div class="kx-tile-label">Within SEND</div>
+        <div class="kx-big"><span data-draw="kpi-ehcp" data-source="national_latest" data-field="a8" data-where="group=EHC plan">—</span> <span class="kx-big-sep">/</span> <span data-draw="kpi-support" data-source="national_latest" data-field="a8" data-where="group=SEN support">—</span></div>
+        <div class="kx-tile-sub">EHC plan / SEN support</div>
+      </div>
+    </div>
+
+    <div class="kx-grid2">
+      <div class="kx-card" id="card-trend">
+        <h3 class="kx-h3">The gap since 2018/19</h3>
+        <p class="kx-cap">Average Attainment 8, England. Grades in 2019/20 and 2020/21 were centre- and teacher-assessed.</p>
+        <div class="kx-chart" data-draw="gap-trend" data-source="area_groups" style="min-height:280px">—</div>
+      </div>
+      <div class="kx-card" id="card-regions">
+        <h3 class="kx-h3">The gap in each region</h3>
+        <p class="kx-cap">Average Attainment 8 by region, latest year, ordered by the size of the gap.</p>
+        <div class="kx-chart" data-draw="gap-regions" data-source="area_groups" style="min-height:280px">—</div>
+      </div>
+    </div>
+
+    <h2 class="kx-h2" id="gap-schools">School by school</h2>
+    <p class="kx-cap" data-only="pair">Each dot is one school. Schools on the dashed line have no gap; the further a dot sits from it, the wider the gap in that school. Groups too small to publish are left out.</p>
+    <p class="kx-cap" data-only="sen">The Department for Education does not publish Attainment 8 for pupils with SEND school by school, so this view shows each school's overall Attainment 8 against the share of its cohort with SEND.</p>
+    <div class="kx-grid2">
+      <div class="kx-card" id="card-scatter">
+        <h3 class="kx-h3" data-only="pair">One group against the other</h3>
+        <h3 class="kx-h3" data-only="sen">Attainment 8 and the share of pupils with SEND</h3>
+        <div class="kx-chart" data-draw="gap-scatter" data-source="schools" style="min-height:360px">—</div>
+      </div>
+      <div class="kx-card" id="card-hist" data-only="pair">
+        <h3 class="kx-h3">How the gap varies between schools</h3>
+        <p class="kx-cap">Number of schools by size of gap, in Attainment 8 points.</p>
+        <div class="kx-chart" data-draw="gap-hist" data-source="schools" style="min-height:320px">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ SUBJECT -->
+  <section class="kx-page" id="subject" data-page="subject" hidden>
+    <div class="kx-filters">
+      <label class="kx-field">Subject
+        <select class="dash-select" id="subject-select" data-draw="subject-select" data-source="subject_entries" aria-label="Subject"></select>
+      </label>
+      <label class="kx-field">Schools shown
+        <select class="dash-select kx-stype" id="stype-subject" aria-label="School type">
+          <option value="State mainstream">State-funded mainstream</option>
+          <option value="Independent">Independent</option>
+          <option value="Special">Special</option>
+          <option value="All">All schools</option>
+        </select>
+      </label>
+    </div>
+
+    <h2 class="kx-h2" id="subj-headline">Offer, uptake and grades</h2>
+    <div class="kx-tiles">
+      <div class="kx-tile" id="tile-offer">
+        <div class="kx-tile-label">Offer</div>
+        <div class="kx-big"><span data-draw="kpi-offer" data-source="subject_summary" data-field="offer_pct" data-row="0">—</span><span class="kx-unit">%</span></div>
+        <div class="kx-tile-sub"><span data-draw="kpi-offering" data-source="subject_summary" data-field="offering" data-row="0">—</span> of <span data-draw="kpi-schools" data-source="subject_summary" data-field="schools" data-row="0">—</span> schools entered at least one pupil</div>
+      </div>
+      <div class="kx-tile" id="tile-uptake">
+        <div class="kx-tile-label">Uptake</div>
+        <div class="kx-big"><span data-draw="kpi-uptake" data-source="subject_summary" data-field="uptake_pct" data-row="0">—</span><span class="kx-unit">%</span></div>
+        <div class="kx-tile-sub"><span data-draw="kpi-entries" data-source="subject_summary" data-field="entries" data-row="0">—</span> entries from <span data-draw="kpi-cohort" data-source="subject_summary" data-field="cohort" data-row="0">—</span> pupils at the end of KS4</div>
+      </div>
+      <div class="kx-tile" id="tile-uptake-offer">
+        <div class="kx-tile-label">Uptake where offered</div>
+        <div class="kx-big"><span data-draw="kpi-uptake-offer" data-source="subject_summary" data-field="uptake_offering_pct" data-row="0">—</span><span class="kx-unit">%</span></div>
+        <div class="kx-tile-sub">of pupils in schools that enter the subject</div>
+      </div>
+      <div class="kx-tile" id="tile-grade">
+        <div class="kx-tile-label">Average grade</div>
+        <div class="kx-big" data-draw="kpi-grade" data-source="subject_summary" data-field="avg_grade" data-row="0">—</div>
+        <div class="kx-tile-sub"><span data-draw="kpi-pass" data-source="subject_summary" data-field="pass_pct" data-row="0">—</span>% at grade 4 or above (level 2 pass for vocational)</div>
+      </div>
+    </div>
+
+    <h2 class="kx-h2" id="subj-pupils">Which pupils take it, and how they do</h2>
+    <p class="kx-cap">Pupil-level figures for all state-funded schools in England. Uptake is entries as a share of each group's pupils at the end of KS4.</p>
+    <div class="kx-grid2">
+      <div class="kx-card" id="card-groups">
+        <h3 class="kx-h3">By pupil group, latest year</h3>
+        <div class="kx-chart" data-draw="subj-groups" data-source="national_subjects" style="min-height:270px">—</div>
+      </div>
+      <div class="kx-card" id="card-subj-trend">
+        <h3 class="kx-h3">Uptake over time</h3>
+        <div class="kx-filters kx-inline">
+          <label class="kx-field">Compare
+            <select class="dash-select kx-cmp" id="cmp-subject" aria-label="Pupil groups to compare">
+              <option value="dis">Disadvantaged and other pupils</option>
+              <option value="sex">Girls and boys</option>
+              <option value="eal">EAL and English first language</option>
+              <option value="sen">SEND and no SEND</option>
+            </select>
+          </label>
+        </div>
+        <div class="kx-chart" data-draw="subj-trend" data-source="national_subjects" style="min-height:280px">—</div>
+      </div>
+    </div>
+
+    <h2 class="kx-h2" id="subj-schools">Which schools offer it, and how it varies</h2>
+    <p class="kx-cap">School-level figures. Results by pupil group are not published for individual subjects in each school, so these charts group schools by their own characteristics.</p>
+    <div class="kx-card" id="card-bands">
+      <div class="kx-filters kx-inline">
+        <label class="kx-field">Group schools by
+          <select class="dash-select" id="band-select" aria-label="School characteristic">
+            <option value="pct_dis">Share of disadvantaged pupils (fifths)</option>
+            <option value="pct_eal">Share of EAL pupils (fifths)</option>
+            <option value="pct_sen">Share of pupils with SEND (fifths)</option>
+            <option value="sex_policy">Boys', girls' or mixed school</option>
+            <option value="admission">Admissions policy</option>
+            <option value="idaci">Neighbourhood deprivation (IDACI fifth)</option>
+            <option value="region">Region</option>
+            <option value="ofsted">Last graded Ofsted judgement</option>
+          </select>
+        </label>
+      </div>
+      <div class="kx-grid3">
+        <div><h3 class="kx-h3">Offer</h3><p class="kx-cap">% of schools entering pupils</p><div class="kx-chart" data-draw="band-offer" data-source="schools subject_entries" style="min-height:136px">—</div></div>
+        <div><h3 class="kx-h3">Uptake</h3><p class="kx-cap">entries as % of the KS4 cohort</p><div class="kx-chart" data-draw="band-uptake" data-source="schools subject_entries" style="min-height:136px">—</div></div>
+        <div><h3 class="kx-h3">Grades</h3><p class="kx-cap">average grade (% level 2 pass for vocational)</p><div class="kx-chart" data-draw="band-grade" data-source="schools subject_entries" style="min-height:136px">—</div></div>
+      </div>
+    </div>
+
+    <div class="kx-card" id="card-subj-scatter">
+      <h3 class="kx-h3">Each school that enters the subject</h3>
+      <div class="kx-filters kx-inline">
+        <label class="kx-field">Across
+          <select class="dash-select" id="sx-select" aria-label="Horizontal axis">
+            <option value="pct_dis">% disadvantaged pupils</option>
+            <option value="pct_eal">% EAL pupils</option>
+            <option value="pct_sen">% pupils with SEND</option>
+            <option value="pct_girls">% girls</option>
+            <option value="a8">Attainment 8 (whole school)</option>
+            <option value="cohort">KS4 cohort size</option>
+          </select>
+        </label>
+        <label class="kx-field">Up
+          <select class="dash-select" id="sy-select" aria-label="Vertical axis">
+            <option value="uptake">Uptake (% of cohort)</option>
+            <option value="grade">Average grade</option>
+          </select>
+        </label>
+      </div>
+      <div class="kx-chart" data-draw="subj-scatter" data-source="schools subject_entries" style="min-height:380px">—</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ SCHOOLS -->
+  <section class="kx-page" id="schools" data-page="schools" hidden>
+    <div class="kx-filters">
+      <label class="kx-field kx-grow">School, local authority or postcode
+        <input class="kx-input" id="school-search" type="search" placeholder="Start typing a name" autocomplete="off">
+      </label>
+      <label class="kx-field">Subject
+        <select class="dash-select" id="subject-select-2" data-draw="subject-select" data-source="subject_entries" aria-label="Subject"></select>
+      </label>
+    </div>
+    <p class="kx-cap">Largest matching schools first, up to 40. Gap columns are in Attainment 8 points; blank cells are suppressed or not published.</p>
+    <div class="kx-tablewrap">
+      <table class="kx-table" id="school-table" data-source="schools" data-row-key="urn">
+        <thead>
+          <tr>
+            <th data-field="name">School</th>
+            <th data-field="la">Local authority</th>
+            <th data-field="type">Type</th>
+            <th data-field="cohort" class="kx-num">KS4 pupils</th>
+            <th data-field="pct_dis" class="kx-num">% disadv.</th>
+            <th data-field="a8" class="kx-num">Attainment 8</th>
+            <th class="kx-num">Disadv. gap</th>
+            <th class="kx-num">Girls − boys</th>
+            <th class="kx-num">Subject entries</th>
+            <th class="kx-num">Uptake %</th>
+            <th class="kx-num">Avg grade</th>
+          </tr>
+        </thead>
+        <tbody data-draw="school-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="kx-details" id="notes">
+    <summary>Definitions, sources and caveats</summary>
+    <ul>
+      <li><b>Attainment 8</b> adds up a pupil's grades across eight qualifications (English and maths count double), so 50 means an average of grade 5.</li>
+      <li><b>Disadvantaged</b> pupils are those eligible for the pupil premium: eligible for free school meals in the last six years, looked after, or previously looked after.</li>
+      <li><b>EAL</b> means a first language known or believed to be other than English. School-level figures for English-first-language pupils are worked out as the school total minus its EAL pupils.</li>
+      <li><b>SEND</b> covers pupils with an EHC plan or on SEN support. Attainment for these pupils is published nationally, by region and by local authority, not school by school.</li>
+      <li><b>Offer</b> is whether a school entered at least one pupil for the subject. <b>Uptake</b> is entries divided by pupils at the end of KS4. Entries are undiscounted, so a pupil entered twice counts twice.</li>
+      <li><b>Average grade</b> covers GCSE 9 to 1 entries with U counted as 0 and entries with no result left out. Combined Science is the mean of its two grades. Vocational awards have no 9 to 1 grade.</li>
+      <li>Neither Progress 8 nor Key Stage 2 prior attainment is published for this cohort, whose Key Stage 2 tests in 2020 were cancelled.</li>
+      <li>Independent schools often enter qualifications that do not count in Attainment 8, so their scores are not comparable with state schools.</li>
+      <li>Figures for the latest year are provisional. Small groups are suppressed by the Department for Education and appear blank.</li>
+      <li>Region comes from each school's local authority. IDACI fifth and Ofsted judgement come from Ofsted's management information as at 31 October 2026; fifth 1 is the least deprived. Ofsted's overall judgements ended in September 2024, so many schools have none.</li>
+    </ul>
+  </details>
+</div>
+<p class="site-foot">Contains public sector information from the Department for Education
+(<a href="https://explore-education-statistics.service.gov.uk/find-statistics/key-stage-4-performance">Key stage 4 performance</a>)
+and Ofsted, licensed under the Open Government Licence v3.0.
+Code and processed data: <a href="https://github.com/milesberry/ks4-equity-explorer">https://github.com/milesberry/ks4-equity-explorer</a>.</p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="shim.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
